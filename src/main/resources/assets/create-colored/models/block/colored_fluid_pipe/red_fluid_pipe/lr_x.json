@@ -1,0 +1,7 @@
+{
+  "parent": "create:block/fluid_pipe/lr_x",
+  "textures": {
+    "0": "create-colored:block/pipes_connected/red",
+    "particle": "create-colored:block/pipes_connected/red"
+  }
+}

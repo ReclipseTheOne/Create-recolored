@@ -1,0 +1,6 @@
+{
+  "parent": "create:block/fluid_pipe/window",
+  "textures": {
+    "0": "create-colored:block/glass_fluid_pipe/lime"
+  }
+}

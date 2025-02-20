@@ -1,0 +1,11 @@
+{
+  "parent": "create:block/fluid_tank/block_single",
+  "textures": {
+    "0": "create-colored:block/fluid_tank_top/green",
+    "1": "create-colored:block/fluid_tank/green",
+    "3": "create-colored:block/fluid_tank_window/green",
+    "4": "create-colored:block/fluid_tank_inner/green",
+    "5": "create-colored:block/fluid_tank_window_single/green",
+    "particle": "create-colored:block/fluid_tank/green"
+  }
+}

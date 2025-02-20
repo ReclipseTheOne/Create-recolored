@@ -1,0 +1,6 @@
+{
+  "parent": "create:item/fluid_pipe",
+  "textures": {
+    "1": "create-colored:block/pipes/light_gray"
+  }
+}

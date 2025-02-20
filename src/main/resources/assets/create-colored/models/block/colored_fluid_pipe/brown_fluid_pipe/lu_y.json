@@ -1,0 +1,7 @@
+{
+  "parent": "create:block/fluid_pipe/lu_y",
+  "textures": {
+    "0": "create-colored:block/pipes_connected/brown",
+    "particle": "create-colored:block/pipes_connected/brown"
+  }
+}

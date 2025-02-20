@@ -1,0 +1,6 @@
+{
+  "parent": "create:block/fluid_pipe/rim/north",
+  "textures": {
+    "0": "create-colored:block/pipes/black"
+  }
+}

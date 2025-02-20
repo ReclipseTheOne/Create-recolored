@@ -1,0 +1,6 @@
+{
+  "parent": "create:block/fluid_pipe/connection/east",
+  "textures": {
+    "0": "create-colored:block/pipes/magenta"
+  }
+}

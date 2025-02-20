@@ -1,0 +1,11 @@
+{
+  "parent": "create:block/fluid_tank/block_bottom_window_ne",
+  "textures": {
+    "0": "create-colored:block/fluid_tank_top/light_blue",
+    "1": "create-colored:block/fluid_tank/light_blue",
+    "3": "create-colored:block/fluid_tank_window/light_blue",
+    "4": "create-colored:block/fluid_tank_inner/light_blue",
+    "5": "create-colored:block/fluid_tank_window_single/light_blue",
+    "particle": "create-colored:block/fluid_tank/light_blue"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "create:block/fluid_pipe/d_x",
+  "textures": {
+    "0": "create-colored:block/pipes_connected/orange",
+    "particle": "create-colored:block/pipes_connected/orange"
+  }
+}

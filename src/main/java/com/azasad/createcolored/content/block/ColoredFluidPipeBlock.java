@@ -66,7 +66,7 @@ public class ColoredFluidPipeBlock extends FluidPipeBlock implements IColoredBlo
         if (FluidPropagator.hasFluidCapability(world, neighbourPos, direction.getOpposite()))
             return true;
         //Is a vanilla fluid target
-        if (VanillaFluidTargets.shouldPipesConnectTo(neighbourState))
+        if (VanillaFluidTargets.canProvideFluidWithoutCapability(neighbourState))
             return true;
 
         //is any type of pipe

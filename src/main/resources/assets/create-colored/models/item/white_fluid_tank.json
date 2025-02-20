@@ -1,0 +1,10 @@
+{
+  "parent": "create:item/fluid_tank",
+  "textures": {
+    "0": "create-colored:block/fluid_tank_top/white",
+    "1": "create-colored:block/fluid_tank/white",
+    "3": "create-colored:block/fluid_tank_window/white",
+    "4": "create-colored:block/fluid_tank_inner/white",
+    "5": "create-colored:block/fluid_tank_window_single/white"
+  }
+}
