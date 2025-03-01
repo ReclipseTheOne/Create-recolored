@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "create-colored:white_fluid_tank",
+    "create-colored:orange_fluid_tank",
+    "create-colored:magenta_fluid_tank",
+    "create-colored:light_blue_fluid_tank",
+    "create-colored:yellow_fluid_tank",
+    "create-colored:lime_fluid_tank",
+    "create-colored:pink_fluid_tank",
+    "create-colored:gray_fluid_tank",
+    "create-colored:light_gray_fluid_tank",
+    "create-colored:cyan_fluid_tank",
+    "create-colored:purple_fluid_tank",
+    "create-colored:blue_fluid_tank",
+    "create-colored:brown_fluid_tank",
+    "create-colored:green_fluid_tank",
+    "create-colored:red_fluid_tank",
+    "create-colored:black_fluid_tank"
+  ]
+}
