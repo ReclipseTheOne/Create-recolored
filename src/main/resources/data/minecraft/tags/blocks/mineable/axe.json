@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "create-colored:white_encased_fluid_pipe",
+    "create-colored:orange_encased_fluid_pipe",
+    "create-colored:magenta_encased_fluid_pipe",
+    "create-colored:light_blue_encased_fluid_pipe",
+    "create-colored:yellow_encased_fluid_pipe",
+    "create-colored:lime_encased_fluid_pipe",
+    "create-colored:pink_encased_fluid_pipe",
+    "create-colored:gray_encased_fluid_pipe",
+    "create-colored:light_gray_encased_fluid_pipe",
+    "create-colored:cyan_encased_fluid_pipe",
+    "create-colored:purple_encased_fluid_pipe",
+    "create-colored:blue_encased_fluid_pipe",
+    "create-colored:brown_encased_fluid_pipe",
+    "create-colored:green_encased_fluid_pipe",
+    "create-colored:red_encased_fluid_pipe",
+    "create-colored:black_encased_fluid_pipe"
+  ]
+}
