@@ -2,14 +2,13 @@ package com.azasad.createcolored;
 
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.simibubi.create.foundation.utility.RegisteredObjects;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.DyeColor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Supplier;
 
@@ -24,7 +23,7 @@ public class ColoredRegistrate extends CreateRegistrate {
         return entry -> onClient(() -> () -> registerColoredBlockModel(entry, func, color));
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private static void registerColoredBlockModel(Block entry,
                                                   Supplier<NonNullBiFunction<BakedModel, DyeColor, ? extends BakedModel>> func, DyeColor color) {
         CreateClient.MODEL_SWAPPER.getCustomBlockModels()
