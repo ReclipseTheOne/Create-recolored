@@ -1,6 +1,6 @@
 package com.azasad.createcolored;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.DyeColor;
 
