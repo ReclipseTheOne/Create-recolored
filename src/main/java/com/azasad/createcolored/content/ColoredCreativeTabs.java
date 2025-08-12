@@ -1,20 +1,15 @@
 package com.azasad.createcolored.content;
 
-import com.azasad.createcolored.CreateColored;
+import com.azasad.createcolored.CreateRecolored;
 import com.azasad.createcolored.content.block.ColoredBlocks;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.DyeColor;
+import net.minecraftforge.registries.DeferredRegister;
 
 public class ColoredCreativeTabs {
-    public static final RegistryKey<ItemGroup> COLORED_CREATIVE_TAB = RegistryKey.of(RegistryKeys.ITEM_GROUP, new Identifier(CreateColored.MOD_ID, "colored_creative_tab"));
+    public static final DeferredRegister<CreativeModeTab> HONTABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CreateRecolored.MOD_ID);
 
     public static void initialize() {
         Registry.register(Registries.ITEM_GROUP, COLORED_CREATIVE_TAB,

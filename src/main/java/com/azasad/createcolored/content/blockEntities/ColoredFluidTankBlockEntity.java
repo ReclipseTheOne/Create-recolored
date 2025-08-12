@@ -1,13 +1,13 @@
 package com.azasad.createcolored.content.blockEntities;
 
-import com.azasad.createcolored.ColoredConnectivityHandler;
+import com.azasad.createcolored.RecoloredConnectivityHandler;
 import com.azasad.createcolored.IConnectableBlockEntity;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.BlockPos;
 
 public class ColoredFluidTankBlockEntity extends FluidTankBlockEntity implements IConnectableBlockEntity {
     public ColoredFluidTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -17,18 +17,18 @@ public class ColoredFluidTankBlockEntity extends FluidTankBlockEntity implements
     @Override
     protected void updateConnectivity() {
         updateConnectivity = false;
-        if (world.isClient)
+        if (level.isClientSide())
             return;
         if (!isController())
             return;
-        ColoredConnectivityHandler.formMulti(this);
+        RecoloredConnectivityHandler.formMulti(this);
     }
 
     @Override
-    public boolean canConnectWith(BlockPos otherPos, BlockView level) {
+    public boolean canConnectWith(BlockPos otherPos, Level level) {
         BlockEntity be = level.getBlockEntity(otherPos);
         if (be instanceof ColoredFluidTankBlockEntity) {
-            return be.getCachedState().getBlock().equals(this.getCachedState().getBlock());
+            return be.getBlockState().getBlock().equals(this.getBlockState().getBlock());
         }
         return false;
     }

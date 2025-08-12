@@ -1,13 +1,18 @@
 package com.azasad.createcolored;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.util.DyeColor;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.DyeColor;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-public class ColoredHelpers {
+public class RecoloredHelpers {
+    public static final Direction[] HORIZONTAL_DIRECTIONS = new Direction[]{
+        Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST
+    };
+
     public static int getColor(DyeColor color)
     {
         return switch (color) {
@@ -53,5 +58,14 @@ public class ColoredHelpers {
 
     public static Item getDyeItem(DyeColor color) {
         return colors.get(color);
+    }
+
+    public static Direction[] directionsInAxis(Direction.Axis axis) {
+        return switch (axis) {
+            case X -> new Direction[]{Direction.NORTH, Direction.SOUTH};
+            case Y -> new Direction[]{Direction.DOWN, Direction.UP};
+            case Z -> new Direction[]{Direction.WEST, Direction.EAST};
+            default -> new Direction[0];
+        };
     }
 }

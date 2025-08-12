@@ -1,60 +1,59 @@
 package com.azasad.createcolored.content.item;
 
-import com.azasad.createcolored.ColoredConnectivityHandler;
+import com.azasad.createcolored.RecoloredConnectivityHandler;
 import com.azasad.createcolored.content.block.ColoredFluidTankBlock;
 import com.azasad.createcolored.content.blockEntities.ColoredBlockEntities;
 import com.azasad.createcolored.content.blockEntities.ColoredFluidTankBlockEntity;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.content.fluids.tank.FluidTankItem;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 public class ColoredFluidTankItem extends FluidTankItem {
-    public ColoredFluidTankItem(Block block, Settings properties) {
+    public ColoredFluidTankItem(Block block, Item.Properties properties) {
         super(block, properties);
     }
 
     //TODO: Refactor this, we are calling the same two times
     @Override
-    public ActionResult place(ItemPlacementContext ctx) {
-        IS_PLACING_NBT = FluidTankItem.checkPlacingNbt(ctx);
-        ActionResult initialResult = super.place(ctx);
-        IS_PLACING_NBT = false;
-        if (!initialResult.isAccepted())
+    public InteractionResult place(BlockPlaceContext ctx) {
+        InteractionResult initialResult = super.place(ctx);
+        if (!initialResult.consumesAction())
             return initialResult;
         tryMultiPlace(ctx);
         return initialResult;
     }
 
     //TODO: Refactor this too
-    private void tryMultiPlace(ItemPlacementContext ctx) {
-        PlayerEntity player = ctx.getPlayer();
+    private void tryMultiPlace(BlockPlaceContext ctx) {
+        Player player = ctx.getPlayer();
         if (player == null)
             return;
-        if (player.isSneaking())
+        if (player.isShiftKeyDown())
             return;
-        Direction face = ctx.getSide();
+        Direction face = ctx.getClickedFace();
         if (!face.getAxis()
                 .isVertical())
             return;
-        ItemStack stack = ctx.getStack();
-        World world = ctx.getWorld();
-        BlockPos pos = ctx.getBlockPos();
-        BlockPos placedOnPos = pos.offset(face.getOpposite());
-        BlockState placedOnState = world.getBlockState(placedOnPos);
+        ItemStack stack = ctx.getItemInHand();
+        Level level = ctx.getLevel();
+        BlockPos pos = ctx.getClickedPos();
+        BlockPos placedOnPos = pos.offset(face.getOpposite().getNormal());
+        BlockState placedOnState = level.getBlockState(placedOnPos);
 
         //If we aren't placing in another colored tank, abort
         if (!ColoredFluidTankBlock.isTank(placedOnState))
             return;
-        ColoredFluidTankBlockEntity tankAt = ColoredConnectivityHandler.partAt(
-                ColoredBlockEntities.COLORED_FLUID_TANK_ENTITY.get(), world, placedOnPos
+        ColoredFluidTankBlockEntity tankAt = RecoloredConnectivityHandler.partAt(
+                ColoredBlockEntities.COLORED_FLUID_TANK_ENTITY.get(), level, placedOnPos
         );
         if (tankAt == null)
             return;
@@ -67,10 +66,10 @@ public class ColoredFluidTankItem extends FluidTankItem {
             return;
 
         int tanksToPlace = 0;
-        BlockPos startPos = face == Direction.DOWN ? controllerBE.getPos()
-                .down()
-                : controllerBE.getPos()
-                .up(controllerBE.getHeight());
+        BlockPos startPos = face == Direction.DOWN ? controllerBE.getBlockPos()
+                .relative(Direction.DOWN)
+                : controllerBE.getBlockPos()
+                .relative(Direction.UP, controllerBE.getHeight());
 
         if (startPos.getY() != pos.getY())
             return;
@@ -78,11 +77,11 @@ public class ColoredFluidTankItem extends FluidTankItem {
         //For all connected blocks in the layer below or above
         for (int xOffset = 0; xOffset < width; xOffset++) {
             for (int zOffset = 0; zOffset < width; zOffset++) {
-                BlockPos offsetPos = startPos.add(xOffset, 0, zOffset);
-                BlockState blockState = world.getBlockState(offsetPos);
+                BlockPos offsetPos = startPos.offset(xOffset, 0, zOffset);
+                BlockState blockState = level.getBlockState(offsetPos);
                 if (ColoredFluidTankBlock.isTank(blockState))
                     continue;
-                if (!blockState.isReplaceable())
+                if (!blockState.canBeReplaced())
                     return;
                 tanksToPlace++;
             }
@@ -93,16 +92,14 @@ public class ColoredFluidTankItem extends FluidTankItem {
 
         for (int xOffset = 0; xOffset < width; xOffset++) {
             for (int zOffset = 0; zOffset < width; zOffset++) {
-                BlockPos offsetPos = startPos.add(xOffset, 0, zOffset);
-                BlockState blockState = world.getBlockState(offsetPos);
+                BlockPos offsetPos = startPos.offset(xOffset, 0, zOffset);
+                BlockState blockState = level.getBlockState(offsetPos);
                 if (ColoredFluidTankBlock.isTank(blockState))
                     continue;
-                ItemPlacementContext context = ItemPlacementContext.offset(ctx, offsetPos, face);
+                BlockPlaceContext context = BlockPlaceContext.at(ctx, offsetPos, face);
 //                player.getCustomData()
 //                        .method_10556("SilenceTankSound", true);
-                IS_PLACING_NBT = checkPlacingNbt(context);
                 place(context);
-                IS_PLACING_NBT = false;
 //                player.getCustomData()
 //                        .method_10551("SilenceTankSound");
             }

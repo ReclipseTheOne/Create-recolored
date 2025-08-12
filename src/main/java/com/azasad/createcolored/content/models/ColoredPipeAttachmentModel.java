@@ -1,87 +1,134 @@
 package com.azasad.createcolored.content.models;
 
 import com.azasad.createcolored.content.block.ColoredFluidPipeBlock;
-import com.azasad.createcolored.content.block.IColoredBlock;
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.utility.Iterate;
-import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.client.model.BakedModelWrapper;
+import net.minecraftforge.client.model.data.ModelData;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Supplier;
+import java.util.List;
 
-@SuppressWarnings("deprecation")
-public class ColoredPipeAttachmentModel extends ForwardingBakedModel {
+public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
     private final DyeColor color;
+
     public ColoredPipeAttachmentModel(BakedModel template, DyeColor color) {
-        wrapped = template;
+        super(template);
         this.color = color;
     }
 
     @Override
-    public boolean isVanillaAdapter() {
-        return false;
-    }
+    @Nonnull
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @Nonnull RandomSource rand,
+                                    @Nonnull ModelData extraData, @Nullable RenderType renderType) {
+        List<BakedQuad> quads = new ArrayList<>(super.getQuads(state, side, rand, extraData, renderType));
 
-    @Override
-    public void emitBlockQuads(BlockRenderView world, BlockState state, BlockPos pos,
-                               Supplier<Random> randomSupplier, RenderContext context) {
+        BlockAndTintGetter level = extraData.get();
+        BlockPos pos = extraData.get()
+
+        if (level == null || pos == null)
+            return quads;
+
         ColoredPipeModelData data = new ColoredPipeModelData();
 
-        //Populate attachment list
-        RenderAttachedBlockView attachmentView = (RenderAttachedBlockView) world;
-        Object attachment = attachmentView.getBlockEntityRenderAttachment(pos);
-        if (attachment instanceof FluidTransportBehaviour.AttachmentTypes[] attachments) {
-            for (int i = 0; i < attachments.length; i++) {
-                data.putAttachment(Iterate.directions[i], attachments[i]);
+        // Populate attachment list
+        FluidTransportBehaviour transport = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
+        if (transport != null) {
+            for (Direction d : Direction.values()) {
+                FluidTransportBehaviour.AttachmentTypes attachment = transport.getRenderedRimAttachment(level, pos, state, d);
+                data.putAttachment(d, attachment);
             }
         }
 
-        // bracket logic
-        BracketedBlockEntityBehaviour bracket = BlockEntityBehaviour.get(world, pos,
-                BracketedBlockEntityBehaviour.TYPE);
+        // Bracket logic
+        BracketedBlockEntityBehaviour bracket = BlockEntityBehaviour.get(level, pos, BracketedBlockEntityBehaviour.TYPE);
         if (bracket != null) {
             data.putBracket(bracket.getBracket());
         }
 
         data.setEncased(ColoredFluidPipeBlock.shouldDrawCasing(state));
 
-        super.emitBlockQuads(world, state, pos, randomSupplier, context);
-        addQuads(world, state, pos, randomSupplier, context, data);
-    }
-
-    private void addQuads(BlockRenderView world, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context,
-                          ColoredPipeModelData pipeData) {
-
-        for (Direction d : Iterate.directions) {
-            FluidTransportBehaviour.AttachmentTypes type = pipeData.getAttachment(d);
+        // Add attachment quads
+        for (Direction d : Direction.values()) {
+            FluidTransportBehaviour.AttachmentTypes type = data.getAttachment(d);
             for (FluidTransportBehaviour.AttachmentTypes.ComponentPartials partial : type.partials) {
-                ColoredPartials.COLORED_PIPE_ATTACHMENTS.get(partial)
+                BakedModel partialModel = ColoredPartials.COLORED_PIPE_ATTACHMENTS.get(partial)
                         .get(color)
-                        .get(d.asString())
-                        .get()
-                        .emitBlockQuads(world, state, pos, randomSupplier, context);
+                        .get(d.getName())
+                        .get();
+                if (partialModel != null) {
+                    quads.addAll(partialModel.getQuads(state, side, rand, extraData, renderType));
+                }
             }
         }
 
-        if (pipeData.isEncased())
-            ColoredPartials.COLORED_FLUID_PIPE_CASINGS.get(color).get()
-                    .emitBlockQuads(world, state, pos, randomSupplier, context);
-        BakedModel bracket = pipeData.getBracket();
-        if (bracket != null) {
-            bracket.emitBlockQuads(world, state, pos, randomSupplier, context);
+        // Add casing quads if needed
+        if (data.isEncased()) {
+            BakedModel casingModel = ColoredPartials.COLORED_FLUID_PIPE_CASINGS.get(color).get();
+            if (casingModel != null) {
+                quads.addAll(casingModel.getQuads(state, side, rand, extraData, renderType));
+            }
         }
+
+        // Add bracket quads
+        BakedModel bracketModel = data.getBracket();
+        if (bracketModel != null) {
+            quads.addAll(bracketModel.getQuads(state, side, rand, extraData, renderType));
+        }
+
+        return quads;
+    }
+
+    @Override
+    public boolean useAmbientOcclusion() {
+        return true;
+    }
+
+    @Override
+    public boolean isGui3d() {
+        return true;
+    }
+
+    @Override
+    public boolean usesBlockLight() {
+        return true;
+    }
+
+    @Override
+    public boolean isCustomRenderer() {
+        return false;
+    }
+
+    @Override
+    public TextureAtlasSprite getParticleIcon() {
+        return originalModel.getParticleIcon();
+    }
+
+    @Override
+    public ItemTransforms getTransforms() {
+        return originalModel.getTransforms();
+    }
+
+    @Override
+    public ItemOverrides getOverrides() {
+        return originalModel.getOverrides();
     }
 
     private static class ColoredPipeModelData {
@@ -97,9 +144,9 @@ public class ColoredPipeAttachmentModel extends ForwardingBakedModel {
 
         public void putBracket(BlockState state) {
             if (state != null) {
-                this.bracket = MinecraftClient.getInstance()
-                        .getBlockRenderManager()
-                        .getModel(state);
+                this.bracket = Minecraft.getInstance()
+                        .getBlockRenderer()
+                        .getBlockModel(state);
             }
         }
 
@@ -108,11 +155,11 @@ public class ColoredPipeAttachmentModel extends ForwardingBakedModel {
         }
 
         public void putAttachment(Direction face, FluidTransportBehaviour.AttachmentTypes rim) {
-            attachments[face.getId()] = rim;
+            attachments[face.get3DDataValue()] = rim;
         }
 
         public FluidTransportBehaviour.AttachmentTypes getAttachment(Direction face) {
-            return attachments[face.getId()];
+            return attachments[face.get3DDataValue()];
         }
 
         public boolean isEncased() {

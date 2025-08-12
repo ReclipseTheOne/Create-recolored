@@ -3,13 +3,12 @@ package com.azasad.createcolored;
 import com.azasad.createcolored.content.ColoredCreativeTabs;
 import com.azasad.createcolored.content.models.ColoredPartials;
 import com.azasad.createcolored.content.models.ColoredSpriteShifts;
-import net.fabricmc.api.ClientModInitializer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.common.Mod;
 
-//Client only registrations
-public class CreateColoredClient implements ClientModInitializer {
-
-    @Override
-    public void onInitializeClient() {
+@Mod.EventBusSubscriber(modid = CreateRecolored.MOD_ID, value = Dist.CLIENT)
+public class CreateRecoloredClient {
+    public CreateRecoloredClient() {
         ColoredCreativeTabs.initialize();
         ColoredSpriteShifts.initialize();
         ColoredPartials.initialize();

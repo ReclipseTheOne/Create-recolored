@@ -1,9 +1,9 @@
 package com.azasad.createcolored.content.blockEntities;
 
 import com.simibubi.create.content.fluids.pipes.StraightPipeBlockEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.BlockPos;
 
 public class ColoredGlassFluidPipeBlockEntity extends StraightPipeBlockEntity {
 

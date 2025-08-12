@@ -3,36 +3,34 @@ package com.azasad.createcolored;
 
 import com.simibubi.create.content.fluids.tank.CreativeFluidTankBlockEntity;
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
-import com.simibubi.create.foundation.utility.Iterate;
-import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
-import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
-import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTank;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidTank;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class ColoredConnectivityHandler {
+public class RecoloredConnectivityHandler {
 
     //Initialize the search for a multi block
     public static <T extends BlockEntity & IConnectableBlockEntity> void formMulti(T be) {
         SearchCache<T> cache = new SearchCache<>();
         List<T> frontier = new ArrayList<>();
         frontier.add(be);
-        formMulti(be.getType(), be.getWorld(), cache, frontier);
+        formMulti(be.getType(), be.getLevel(), cache, frontier);
     }
 
     public static <T extends BlockEntity & IConnectableBlockEntity> void splitMulti(T be) {
         splitMultiAndInvalidate(be, null, false);
     }
 
-    private static <T extends BlockEntity & IConnectableBlockEntity> void formMulti(BlockEntityType<?> type, BlockView level, SearchCache<T> cache, List<T> frontier) {
+    private static <T extends BlockEntity & IConnectableBlockEntity> void formMulti(BlockEntityType<?> type, Level level, SearchCache<T> cache, List<T> frontier) {
         PriorityQueue<Pair<Integer, T>> creationQueue = makeCreationQueue();
         Set<BlockPos> visited = new HashSet<>();
         Direction.Axis mainAxis = frontier.get(0).getMainConnectionAxis();
@@ -45,7 +43,7 @@ public class ColoredConnectivityHandler {
 
         //Find minimum values for each coordinate
         for (T be : frontier) {
-            BlockPos pos = be.getPos();
+            BlockPos pos = be.getBlockPos();
             minX = Math.min(pos.getX(), minX);
             minY = Math.min(pos.getY(), minY);
             minZ = Math.min(pos.getZ(), minZ);
@@ -62,7 +60,7 @@ public class ColoredConnectivityHandler {
 
         while (!frontier.isEmpty()) {
             T part = frontier.remove(0);
-            BlockPos partPos = part.getPos();
+            BlockPos partPos = part.getBlockPos();
             if (visited.contains(partPos))
                 continue;
 
@@ -73,9 +71,9 @@ public class ColoredConnectivityHandler {
             }
 
             //Add surrounding block entities
-            for (Direction.Axis axis : Iterate.axes) {
+            for (Direction.Axis axis : Direction.Axis.values()) {
                 Direction dir = Direction.get(Direction.AxisDirection.NEGATIVE, axis);
-                BlockPos next = partPos.offset(dir);
+                BlockPos next = partPos.offset(dir.getNormal());
 
                 if (next.getX() <= minX || next.getY() <= minY || next.getZ() <= minZ)
                     continue;
@@ -96,16 +94,16 @@ public class ColoredConnectivityHandler {
         while (!creationQueue.isEmpty()) {
             Pair<Integer, T> next = creationQueue.poll();
             T toCreate = next.getValue();
-            if (visited.contains(toCreate.getPos()))
+            if (visited.contains(toCreate.getBlockPos()))
                 continue;
 
-            visited.add(toCreate.getPos());
+            visited.add(toCreate.getBlockPos());
             tryToFormNewMulti(toCreate, cache, false);
         }
     }
 
     @Nullable
-    public static <T extends BlockEntity & IConnectableBlockEntity> T partAt(BlockEntityType<?> type, BlockView level,
+    public static <T extends BlockEntity & IConnectableBlockEntity> T partAt(BlockEntityType<?> type, Level level,
                                                                              BlockPos pos) {
         BlockEntity be = level.getBlockEntity(pos);
         if (be != null && be.getType() == type && !be.isRemoved())
@@ -165,13 +163,13 @@ public class ColoredConnectivityHandler {
         int amount = 0;
         int height = 0;
         BlockEntityType<?> type = be.getType();
-        World level = be.getWorld();
+        Level level = be.getLevel();
         if (level == null)
             return 0;
-        BlockPos origin = be.getPos();
+        BlockPos origin = be.getBlockPos();
 
         // optional fluid handling
-        FluidTank beTank = null;
+        IFluidTank beTank = null;
         FluidStack fluid = FluidStack.EMPTY;
         if (be instanceof IMultiBlockEntityContainer.Fluid ifluid && ifluid.hasTank()) {
             beTank = ifluid.getTank(0);
@@ -184,9 +182,9 @@ public class ColoredConnectivityHandler {
             for (int xOffset = 0; xOffset < width; xOffset++) {
                 for (int zOffset = 0; zOffset < width; zOffset++) {
                     BlockPos pos = switch (axis) {
-                        case X -> origin.add(yOffset, xOffset, zOffset);
-                        case Y -> origin.add(xOffset, yOffset, zOffset);
-                        case Z -> origin.add(xOffset, zOffset, yOffset);
+                        case X -> origin.offset(yOffset, xOffset, zOffset);
+                        case Y -> origin.offset(xOffset, yOffset, zOffset);
+                        case Z -> origin.offset(xOffset, zOffset, yOffset);
                     };
                     Optional<T> part = cache.getOrCache(type, level, pos);
                     if (part.isEmpty()) {
@@ -204,7 +202,7 @@ public class ColoredConnectivityHandler {
                     if (axis != conAxis)
                         break Search;
 
-                    BlockPos conPos = controller.getPos();
+                    BlockPos conPos = controller.getBlockPos();
                     if (!be.canConnectWith(conPos, level))
                         break Search;
 
@@ -253,9 +251,9 @@ public class ColoredConnectivityHandler {
             for (int xOffset = 0; xOffset < width; xOffset++) {
                 for (int zOffset = 0; zOffset < width; zOffset++) {
                     BlockPos pos = switch (axis) {
-                        case X -> origin.add(yOffset, xOffset, zOffset);
-                        case Y -> origin.add(xOffset, yOffset, zOffset);
-                        case Z -> origin.add(xOffset, zOffset, yOffset);
+                        case X -> origin.offset(yOffset, xOffset, zOffset);
+                        case Y -> origin.offset(xOffset, yOffset, zOffset);
+                        case Z -> origin.offset(xOffset, zOffset, yOffset);
                     };
                     T part = partAt(type, level, pos);
                     if (part == null)
@@ -266,7 +264,7 @@ public class ColoredConnectivityHandler {
                     extraData = be.modifyExtraData(extraData);
 
                     if (part instanceof IMultiBlockEntityContainer.Fluid ifluidPart && ifluidPart.hasTank()) {
-                        FluidTank tankAt = ifluidPart.getTank(0);
+                        IFluidTank tankAt = ifluidPart.getTank(0);
                         FluidStack fluidAt = tankAt.getFluid();
                         if (!fluidAt.isEmpty()) {
                             // making this generic would be a rather large mess, unfortunately
@@ -277,10 +275,10 @@ public class ColoredConnectivityHandler {
                             }
                             if (be instanceof IMultiBlockEntityContainer.Fluid ifluidBE && ifluidBE.hasTank()
                                     && beTank != null) {
-                                TransferUtil.insertFluid(beTank, fluidAt);
+                                beTank.fill(fluidAt, IFluidHandler.FluidAction.EXECUTE);
                             }
                         }
-                        TransferUtil.clearStorage(tankAt);
+                        tankAt.drain(tankAt.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
                     }
 
                     splitMultiAndInvalidate(part, cache, false);
@@ -300,7 +298,7 @@ public class ColoredConnectivityHandler {
 
     // tryReconnect helps whenever only a few tanks have been removed
     private static <T extends BlockEntity & IConnectableBlockEntity> void splitMultiAndInvalidate(T be, @Nullable SearchCache<T> cache, boolean tryReconnect) {
-        World level = be.getWorld();
+        Level level = be.getLevel();
         if (level == null)
             return;
 
@@ -313,13 +311,13 @@ public class ColoredConnectivityHandler {
         if (width == 1 && height == 1)
             return;
 
-        BlockPos origin = be.getPos();
+        BlockPos origin = be.getBlockPos();
         List<T> frontier = new ArrayList<>();
         Direction.Axis axis = be.getMainConnectionAxis();
 
         // fluid handling, if present
         FluidStack toDistribute = FluidStack.EMPTY;
-        long maxCapacity = 0;
+        int maxCapacity = 0;
         if (be instanceof IMultiBlockEntityContainer.Fluid ifluidBE && ifluidBE.hasTank()) {
             toDistribute = ifluidBE.getFluid(0);
             maxCapacity = ifluidBE.getTankSize(0);
@@ -333,9 +331,9 @@ public class ColoredConnectivityHandler {
                 for (int zOffset = 0; zOffset < width; zOffset++) {
 
                     BlockPos pos = switch (axis) {
-                        case X -> origin.add(yOffset, xOffset, zOffset);
-                        case Y -> origin.add(xOffset, yOffset, zOffset);
-                        case Z -> origin.add(xOffset, zOffset, yOffset);
+                        case X -> origin.offset(yOffset, xOffset, zOffset);
+                        case Y -> origin.offset(xOffset, yOffset, zOffset);
+                        case Z -> origin.offset(xOffset, zOffset, yOffset);
                     };
 
                     T partAt = partAt(be.getType(), level, pos);
@@ -351,18 +349,18 @@ public class ColoredConnectivityHandler {
 
                     if (!toDistribute.isEmpty() && partAt != be) {
                         FluidStack copy = toDistribute.copy();
-                        FluidTank tank =
+                        IFluidTank tank =
                                 (partAt instanceof IMultiBlockEntityContainer.Fluid ifluidPart ? ifluidPart.getTank(0) : null);
                         // making this generic would be a rather large mess, unfortunately
                         if (tank instanceof CreativeFluidTankBlockEntity.CreativeSmartFluidTank creativeTank) {
                             if (creativeTank.isEmpty())
                                 creativeTank.setContainedFluid(toDistribute);
                         } else {
-                            long split = Math.min(maxCapacity, toDistribute.getAmount());
+                            int split = Math.min(maxCapacity, toDistribute.getAmount());
                             copy.setAmount(split);
                             toDistribute.shrink(split);
                             if (tank != null)
-                                TransferUtil.insertFluid(tank, copy);
+                                tank.fill(copy, IFluidHandler.FluidAction.EXECUTE);
                         }
                     }
                     if (tryReconnect) {
@@ -397,7 +395,7 @@ public class ColoredConnectivityHandler {
             return controllerMap.containsKey(pos);
         }
 
-        Optional<T> getOrCache(BlockEntityType<?> type, BlockView level, BlockPos pos) {
+        Optional<T> getOrCache(BlockEntityType<?> type, Level level, BlockPos pos) {
             if (hasVisited(pos))
                 return controllerMap.get(pos);
 

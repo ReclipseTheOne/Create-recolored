@@ -15,11 +15,11 @@ import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import io.github.fabricators_of_create.porting_lib.models.generators.ConfiguredModel;
 import io.github.fabricators_of_create.porting_lib.models.generators.ModelFile;
 import io.github.fabricators_of_create.porting_lib.models.generators.block.MultiPartBlockStateBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.Axis;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashMap;
@@ -35,9 +35,9 @@ public class ColoredBlockStateGen {
 
             p.getVariantBuilder(c.getEntry())
                     .forAllStates(state -> {
-                        Boolean top = state.get(ColoredFluidTankBlock.TOP);
-                        Boolean bottom = state.get(ColoredFluidTankBlock.BOTTOM);
-                        FluidTankBlock.Shape shape = state.get(ColoredFluidTankBlock.SHAPE);
+                        Boolean top = state.getValue(ColoredFluidTankBlock.TOP);
+                        Boolean bottom = state.getValue(ColoredFluidTankBlock.BOTTOM);
+                        FluidTankBlock.Shape shape = state.getValue(ColoredFluidTankBlock.SHAPE);
 
                         String shapeName = "middle";
                         if (top && bottom)
@@ -120,7 +120,7 @@ public class ColoredBlockStateGen {
                     .texture("0", "block/pipes/" + colorName);
 
             //Connection
-            for (Direction d : Iterate.directions) {
+            for (Direction d : Direction.values()) {
                 String sourceModel = path + "/connection/" + d.getName();
                 String outputModel = coloredPath + "/connection/" + d.getName();
 
@@ -129,7 +129,7 @@ public class ColoredBlockStateGen {
             }
 
             //Drain
-            for (Direction d : Iterate.directions) {
+            for (Direction d : Direction.values()) {
                 String sourceModel = path + "/drain/" + d.getName();
                 String outputModel = coloredPath + "/drain/" + d.getName();
 
@@ -138,7 +138,7 @@ public class ColoredBlockStateGen {
             }
 
             //Rim
-            for (Direction d : Iterate.directions) {
+            for (Direction d : Direction.values()) {
                 String sourceModel = path + "/rim/" + d.getName();
                 String outputModel = coloredPath + "/rim/" + d.getName();
 
@@ -147,7 +147,7 @@ public class ColoredBlockStateGen {
             }
 
             //Rim_connector
-            for (Direction d : Iterate.directions) {
+            for (Direction d : Direction.values()) {
                 String sourceModel = path + "/rim_connector/" + d.getName();
                 String outputModel = coloredPath + "/rim_connector/" + d.getName();
 
@@ -160,7 +160,7 @@ public class ColoredBlockStateGen {
     private static void putPart(Map<Pair<String, Axis>, ModelFile> coreModels, MultiPartBlockStateBuilder builder,
                                 Axis axis, String s, boolean up, boolean down, boolean left, boolean right) {
         Direction positiveAxis = Direction.get(Direction.AxisDirection.POSITIVE, axis);
-        Map<Direction, BooleanProperty> propertyMap = FluidPipeBlock.FACING_PROPERTIES;
+        Map<Direction, BooleanProperty> propertyMap = EncasedPipeBlock.FACING_TO_PROPERTY_MAP;
 
         Direction upD = Pointing.UP.getCombinedDirection(positiveAxis);
         Direction leftD = Pointing.LEFT.getCombinedDirection(positiveAxis);
@@ -191,7 +191,7 @@ public class ColoredBlockStateGen {
             ModelFile flat = p.models().getExistingFile(Create.asResource("block/encased_fluid_pipe/block_flat"));
             MultiPartBlockStateBuilder builder = p.getMultipartBuilder(c.get());
             for (boolean flatPass : Iterate.trueAndFalse)
-                for (Direction d : Iterate.directions) {
+                for (Direction d : Direction.values()) {
                     int verticalAngle = d == Direction.UP ? 90 : d == Direction.DOWN ? -90 : 0;
                     builder.part()
                             .modelFile(flatPass ? flat : open)

@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.azasad.createcolored.CreateColored"
+          "com.azasad.createcolored.CreateRecolored"
 		],
 		"client": [
-			"com.azasad.createcolored.CreateColoredClient"
+			"com.azasad.createcolored.CreateRecoloredClient"
 		],
 		"fabric-datagen": [
 			"com.azasad.createcolored.datagen.CreateColoredDatagen"

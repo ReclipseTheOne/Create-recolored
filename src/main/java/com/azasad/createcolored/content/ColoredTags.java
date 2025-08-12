@@ -1,25 +1,24 @@
 package com.azasad.createcolored.content;
 
-import com.azasad.createcolored.CreateColored;
+import com.azasad.createcolored.CreateRecolored;
 import com.simibubi.create.foundation.utility.Lang;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 
 public class ColoredTags {
-    public static <T> TagKey<T> optionalTag(Registry<T> registry,
-                                            Identifier id) {
-        return TagKey.of(registry.getKey(), id);
+    public static <T> TagKey<T> optionalTag(Registry<T> registry, ResourceLocation id) {
+        return TagKey.create(registry.key(), id);
     }
 
     public static <T> TagKey<T> forgeTag(Registry<T> registry, String path) {
-        return optionalTag(registry, new Identifier("c", path));
+        return optionalTag(registry, ResourceLocation.fromNamespaceAndPath("c", path));
     }
 
     public enum NameSpace {
-        MOD(CreateColored.MOD_ID, false, true),
+        MOD(CreateRecolored.MOD_ID, false, true),
         CREATE("create-colored"),
         FORGE("forge"),
         TIC("tic"),
@@ -64,7 +63,7 @@ public class ColoredTags {
         }
 
         ColoredItemTags(ColoredTags.NameSpace namespace, String path, boolean optional, boolean alwaysDatagen) {
-            Identifier id = new Identifier(namespace.id, path == null ? Lang.asId(name()) : path);
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(namespace.id, path == null ? Lang.asId(name()) : path);
             tag = optionalTag(Registries.ITEM, id);
 
             this.alwaysDatagen = alwaysDatagen;

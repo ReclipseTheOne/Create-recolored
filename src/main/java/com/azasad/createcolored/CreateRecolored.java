@@ -4,28 +4,30 @@ import com.azasad.createcolored.content.ColoredTags;
 import com.azasad.createcolored.content.block.ColoredBlocks;
 import com.azasad.createcolored.content.blockEntities.ColoredBlockEntities;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import net.fabricmc.api.ModInitializer;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.IModBusEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//Executes both in server and client
-public class CreateColored implements ModInitializer {
+@Mod(CreateRecolored.MOD_ID)
+public class CreateRecolored {
 	public static final String MOD_ID = "create-colored";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MOD_ID);
 
-	public static Identifier asResource(String path) {
-		return new Identifier(MOD_ID, path);
+	public static ResourceLocation rl(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 
-	@Override
-	public void onInitialize() {
+	public CreateRecolored(IEventBus bus, ModContainer container) {
 		LOGGER.info("Registering create-colored blocks!");
 		ColoredTags.initialize();
 		ColoredBlockEntities.initialize();
 		ColoredBlocks.initialize();
-		REGISTRATE.register();
+		REGISTRATE.registerEventListeners(bus);
 	}
 }

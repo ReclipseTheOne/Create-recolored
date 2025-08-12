@@ -1,8 +1,8 @@
 package com.azasad.createcolored.content.block;
 
-import com.azasad.createcolored.ColoredHelpers;
-import com.azasad.createcolored.ColoredRegistrate;
-import com.azasad.createcolored.CreateColored;
+import com.azasad.createcolored.RecoloredHelpers;
+import com.azasad.createcolored.RecoloredRegistrate;
+import com.azasad.createcolored.CreateRecolored;
 import com.azasad.createcolored.content.ColoredTags;
 import com.azasad.createcolored.content.item.ColoredFluidTankItem;
 import com.azasad.createcolored.content.models.ColoredFluidTankModel;
@@ -26,15 +26,14 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.data.server.recipe.ShapelessRecipeJsonBuilder;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 
 import static com.simibubi.create.content.redstone.displayLink.AllDisplayBehaviours.assignDataBehaviour;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
 public class ColoredBlocks {
-    private static final CreateRegistrate REGISTRATE = CreateColored.REGISTRATE;
+    private static final CreateRegistrate REGISTRATE = CreateRecolored.REGISTRATE;
 
     public static final DyedBlockList<ColoredFluidTankBlock> DYED_FLUID_TANKS = new DyedBlockList<>(dyecolor -> {
        String colorName = dyecolor.getName();
@@ -43,7 +42,7 @@ public class ColoredBlocks {
                .properties(p -> p.nonOpaque().solidBlock((p1, p2, p3) -> true))
                .transform(pickaxeOnly())
                .blockstate(ColoredBlockStateGen.coloredTank(dyecolor))
-               .onRegister(ColoredRegistrate.coloredBlockModel(() -> ColoredFluidTankModel::standard, dyecolor))
+               .onRegister(RecoloredRegistrate.coloredBlockModel(() -> ColoredFluidTankModel::standard, dyecolor))
                .onRegister(assignDataBehaviour(new BoilerDisplaySource(), "boiler_status"))
                .addLayer(() -> RenderLayer::getCutoutMipped)
                .item(ColoredFluidTankItem::new)
@@ -58,11 +57,11 @@ public class ColoredBlocks {
                })
                .recipe((c,p) -> {
                    ShapelessRecipeJsonBuilder builder = ShapelessRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
-                           .input(ColoredHelpers.getDyeItem(dyecolor))
+                           .input(RecoloredHelpers.getDyeItem(dyecolor))
                            .input(AllBlocks.FLUID_TANK.asItem())
                            .criterion("has_tank", InventoryChangedCriterion.Conditions.items(AllBlocks.FLUID_TANK));
 
-                   builder.offerTo(p, CreateColored.asResource(c.getName()));
+                   builder.offerTo(p, CreateRecolored.rl(c.getName()));
                })
                .tag(ColoredTags.ColoredItemTags.COLORED_TANKS.tag)
                .build()
@@ -75,17 +74,17 @@ public class ColoredBlocks {
                 .initialProperties(SharedProperties::copperMetal)
                 .properties(p -> p.mapColor(dyeColor.getMapColor()).solid())
                 .transform(pickaxeOnly())
-                .onRegister(ColoredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
+                .onRegister(RecoloredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
                 .blockstate(ColoredBlockStateGen.coloredPipe(dyeColor))
                 .item()
                 .model((c, p) -> p.withExistingParent(c.getName(), Create.asResource("item/fluid_pipe")).texture("1", "block/pipes/" + colorName))
                 .recipe((c, p) -> {
                     ShapelessRecipeJsonBuilder builder = ShapelessRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
-                            .input(ColoredHelpers.getDyeItem(dyeColor))
+                            .input(RecoloredHelpers.getDyeItem(dyeColor))
                             .input(AllBlocks.FLUID_PIPE.asItem())
                             .criterion("has_pipe", InventoryChangedCriterion.Conditions.items(AllBlocks.FLUID_PIPE));
 
-                    builder.offerTo(p, CreateColored.asResource(c.getName()));
+                    builder.offerTo(p, CreateRecolored.rl(c.getName()));
                 })
                 .tag(ColoredTags.ColoredItemTags.COLORED_PIPES.tag)
                 .build()
@@ -101,7 +100,7 @@ public class ColoredBlocks {
                 .transform(pickaxeOnly())
                 .blockstate((c, p) -> p.getVariantBuilder(c.getEntry())
                         .forAllStatesExcept(state -> {
-                            Direction.Axis axis = state.get(Properties.AXIS);
+                            Direction.Axis axis = state.getValue(Properties.AXIS);
                             return ConfiguredModel.builder()
                                     .modelFile(p.models().
                                             withExistingParent("block/colored_fluid_pipe/" + colorName + "_fluid_pipe/window", Create.asResource("block/fluid_pipe/window"))
@@ -110,8 +109,8 @@ public class ColoredBlocks {
                                     .rotationX(axis == Direction.Axis.Y ? 0 : 90)
                                     .rotationY(axis == Direction.Axis.X ? 90 : 0)
                                     .build();
-                        }, Properties.WATERLOGGED))
-                .onRegister(ColoredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
+                        }, BlockStateProperties.WATERLOGGED))
+                .onRegister(RecoloredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
                 .loot((p, b) -> p.addDrop(b, DYED_PIPES.get(dyeColor).get()))
                 .register();
     });
@@ -126,7 +125,7 @@ public class ColoredBlocks {
                 .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.COPPER_CASING)))
                 .onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.COPPER_CASING,
                         (s, f) -> !s.get(EncasedPipeBlock.FACING_TO_PROPERTY_MAP.get(f)))))
-                .onRegister(ColoredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
+                .onRegister(RecoloredRegistrate.coloredBlockModel(() -> ColoredPipeAttachmentModel::new, dyeColor))
                 .loot((p, b) -> p.addDrop(b, DYED_PIPES.get(dyeColor).get()))
                 .transform(EncasingRegistry.addVariantTo(DYED_PIPES.get(dyeColor)))
                 .register();

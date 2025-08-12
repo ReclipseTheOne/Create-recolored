@@ -1,10 +1,10 @@
 package com.azasad.createcolored;
 
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 
 public interface IConnectableBlockEntity extends IMultiBlockEntityContainer {
-    boolean canConnectWith(BlockPos pos, BlockView level);
+    boolean canConnectWith(BlockPos pos, Level level);
 }

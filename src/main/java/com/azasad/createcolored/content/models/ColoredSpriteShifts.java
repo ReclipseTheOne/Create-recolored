@@ -1,11 +1,11 @@
 package com.azasad.createcolored.content.models;
 
-import com.azasad.createcolored.CreateColored;
+import com.azasad.createcolored.CreateRecolored;
 import com.simibubi.create.foundation.block.connected.AllCTTypes;
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
 import com.simibubi.create.foundation.block.connected.CTSpriteShifter;
 import com.simibubi.create.foundation.block.connected.CTType;
-import net.minecraft.util.DyeColor;
+import net.minecraft.world.item.DyeColor;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -31,8 +31,8 @@ public class ColoredSpriteShifts {
         String basePath = "block/" + blockTextureName;
         String originalTexturePath = basePath + "/" + color.getName();
         String connectedTexturePath = basePath + "_connected/" + color.getName();
-        return CTSpriteShifter.getCT(type, CreateColored.asResource(originalTexturePath),
-                CreateColored.asResource(connectedTexturePath));
+        return CTSpriteShifter.getCT(type, CreateRecolored.rl(originalTexturePath),
+                CreateRecolored.rl(connectedTexturePath));
     }
 
     public static void initialize() {
