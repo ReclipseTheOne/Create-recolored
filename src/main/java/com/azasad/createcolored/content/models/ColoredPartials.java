@@ -3,11 +3,13 @@ package com.azasad.createcolored.content.models;
 import com.azasad.createcolored.CreateRecolored;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.Direction;
 
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ColoredPartials {
@@ -32,8 +34,8 @@ public class ColoredPartials {
             for (DyeColor color : DyeColor.values()) {
                 Map<String, PartialModel> map = new HashMap<>();
                 for (Direction d : Direction.values()) {
-                    String asId = Lang.asId(type.name());
-                    map.put(d.asString(), block("colored_fluid_pipe/" + color.getName() + "_fluid_pipe/" + asId + "/" + Lang.asId(d.asString())));
+                    String asId = type.name().toLowerCase(Locale.ROOT);
+                    map.put(d.toString(), block("colored_fluid_pipe/" + color.getName() + "_fluid_pipe/" + asId + "/" + d.toString()));
                 }
                 colorMap.put(color, map);
             }
@@ -42,7 +44,7 @@ public class ColoredPartials {
     }
 
     private static PartialModel block(String path) {
-        return new PartialModel(new ResourceLocation(CreateRecolored.MOD_ID, "block/" + path));
+        return PartialModel.of(ResourceLocation.fromNamespaceAndPath(CreateRecolored.MOD_ID, "block/" + path));
     }
 
     public static void initialize() {

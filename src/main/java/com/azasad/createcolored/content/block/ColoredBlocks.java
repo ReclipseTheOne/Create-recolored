@@ -18,17 +18,14 @@ import com.simibubi.create.content.redstone.displayLink.source.BoilerDisplaySour
 import com.simibubi.create.foundation.block.DyedBlockList;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
-import io.github.fabricators_of_create.porting_lib.models.generators.ConfiguredModel;
-import net.minecraft.advancement.criterion.InventoryChangedCriterion;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.MapColor;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.data.server.recipe.ShapelessRecipeJsonBuilder;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.state.property.Properties;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.core.Direction;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
 
-import static com.simibubi.create.content.redstone.displayLink.AllDisplayBehaviours.assignDataBehaviour;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 
@@ -39,7 +36,7 @@ public class ColoredBlocks {
        String colorName = dyecolor.getName();
        return REGISTRATE.block(colorName + "_fluid_tank", settings -> new ColoredFluidTankBlock(settings, dyecolor))
                .initialProperties(SharedProperties::copperMetal)
-               .properties(p -> p.nonOpaque().solidBlock((p1, p2, p3) -> true))
+               .properties(p -> p.noOcclusion())
                .transform(pickaxeOnly())
                .blockstate(ColoredBlockStateGen.coloredTank(dyecolor))
                .onRegister(RecoloredRegistrate.coloredBlockModel(() -> ColoredFluidTankModel::standard, dyecolor))
@@ -56,7 +53,7 @@ public class ColoredBlocks {
                            .texture("5", p.modLoc("block/fluid_tank_window_single/" + colorName));
                })
                .recipe((c,p) -> {
-                   ShapelessRecipeJsonBuilder builder = ShapelessRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
+                   ShapelessRecipeBuilder builder = ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
                            .input(RecoloredHelpers.getDyeItem(dyecolor))
                            .input(AllBlocks.FLUID_TANK.asItem())
                            .criterion("has_tank", InventoryChangedCriterion.Conditions.items(AllBlocks.FLUID_TANK));
@@ -79,7 +76,7 @@ public class ColoredBlocks {
                 .item()
                 .model((c, p) -> p.withExistingParent(c.getName(), Create.asResource("item/fluid_pipe")).texture("1", "block/pipes/" + colorName))
                 .recipe((c, p) -> {
-                    ShapelessRecipeJsonBuilder builder = ShapelessRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
+                    ShapelessRecipeBuilder builder = ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, c.get(), 1)
                             .input(RecoloredHelpers.getDyeItem(dyeColor))
                             .input(AllBlocks.FLUID_PIPE.asItem())
                             .criterion("has_pipe", InventoryChangedCriterion.Conditions.items(AllBlocks.FLUID_PIPE));

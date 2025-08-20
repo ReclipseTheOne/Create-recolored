@@ -19,6 +19,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.BakedModelWrapper;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.client.model.data.ModelProperty;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,6 +29,11 @@ import java.util.List;
 
 public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
     private final DyeColor color;
+
+    // Define model properties
+    public static final ModelProperty<ColoredPipeModelData> PIPE_DATA = new ModelProperty<>();
+    public static final ModelProperty<BlockAndTintGetter> WORLD_PROPERTY = new ModelProperty<>();
+    public static final ModelProperty<BlockPos> POS_PROPERTY = new ModelProperty<>();
 
     public ColoredPipeAttachmentModel(BakedModel template, DyeColor color) {
         super(template);
@@ -40,47 +46,60 @@ public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
                                     @Nonnull ModelData extraData, @Nullable RenderType renderType) {
         List<BakedQuad> quads = new ArrayList<>(super.getQuads(state, side, rand, extraData, renderType));
 
-        BlockAndTintGetter level = extraData.get();
-        BlockPos pos = extraData.get()
+        // Get the model data from extraData
+        ColoredPipeModelData data = extraData.get(PIPE_DATA);
+        if (data == null) {
+            // If no data is present, create it from the world
+            BlockAndTintGetter level = extraData.get(WORLD_PROPERTY);
+            BlockPos pos = extraData.get(POS_PROPERTY);
 
-        if (level == null || pos == null)
-            return quads;
+            if (level != null && pos != null) {
+                data = new ColoredPipeModelData();
 
-        ColoredPipeModelData data = new ColoredPipeModelData();
+                // Populate attachment list
+                FluidTransportBehaviour transport = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
+                if (transport != null) {
+                    for (Direction d : Direction.values()) {
+                        FluidTransportBehaviour.AttachmentTypes attachment = transport.getRenderedRimAttachment(level, pos, state, d);
+                        data.putAttachment(d, attachment);
+                    }
+                }
 
-        // Populate attachment list
-        FluidTransportBehaviour transport = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
-        if (transport != null) {
-            for (Direction d : Direction.values()) {
-                FluidTransportBehaviour.AttachmentTypes attachment = transport.getRenderedRimAttachment(level, pos, state, d);
-                data.putAttachment(d, attachment);
+                // Bracket logic
+                BracketedBlockEntityBehaviour bracket = BlockEntityBehaviour.get(level, pos, BracketedBlockEntityBehaviour.TYPE);
+                if (bracket != null) {
+                    data.putBracket(bracket.getBracket());
+                }
+
+                data.setEncased(state != null && ColoredFluidPipeBlock.shouldDrawCasing(state));
+            } else {
+                return quads;
             }
         }
-
-        // Bracket logic
-        BracketedBlockEntityBehaviour bracket = BlockEntityBehaviour.get(level, pos, BracketedBlockEntityBehaviour.TYPE);
-        if (bracket != null) {
-            data.putBracket(bracket.getBracket());
-        }
-
-        data.setEncased(ColoredFluidPipeBlock.shouldDrawCasing(state));
 
         // Add attachment quads
         for (Direction d : Direction.values()) {
             FluidTransportBehaviour.AttachmentTypes type = data.getAttachment(d);
-            for (FluidTransportBehaviour.AttachmentTypes.ComponentPartials partial : type.partials) {
-                BakedModel partialModel = ColoredPartials.COLORED_PIPE_ATTACHMENTS.get(partial)
-                        .get(color)
-                        .get(d.getName())
-                        .get();
-                if (partialModel != null) {
-                    quads.addAll(partialModel.getQuads(state, side, rand, extraData, renderType));
+            if (type != null && type.partials != null) {
+                for (FluidTransportBehaviour.AttachmentTypes.ComponentPartials partial : type.partials) {
+                    if (ColoredPartials.COLORED_PIPE_ATTACHMENTS.containsKey(partial)) {
+                        var colorMap = ColoredPartials.COLORED_PIPE_ATTACHMENTS.get(partial);
+                        if (colorMap.containsKey(color)) {
+                            var directionMap = colorMap.get(color);
+                            if (directionMap.containsKey(d.getName())) {
+                                BakedModel partialModel = directionMap.get(d.getName()).get();
+                                if (partialModel != null) {
+                                    quads.addAll(partialModel.getQuads(state, side, rand, extraData, renderType));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         // Add casing quads if needed
-        if (data.isEncased()) {
+        if (data.isEncased() && ColoredPartials.COLORED_FLUID_PIPE_CASINGS.containsKey(color)) {
             BakedModel casingModel = ColoredPartials.COLORED_FLUID_PIPE_CASINGS.get(color).get();
             if (casingModel != null) {
                 quads.addAll(casingModel.getQuads(state, side, rand, extraData, renderType));
@@ -94,6 +113,35 @@ public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
         }
 
         return quads;
+    }
+
+    @Override
+    @Nonnull
+    public ModelData getModelData(@Nonnull BlockAndTintGetter level, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nonnull ModelData modelData) {
+        ColoredPipeModelData data = new ColoredPipeModelData();
+
+        // Populate attachment list
+        FluidTransportBehaviour transport = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
+        if (transport != null) {
+            for (Direction d : Direction.values()) {
+                FluidTransportBehaviour.AttachmentTypes attachment = transport.getRenderedRimAttachment(level, pos, state, d);
+                data.putAttachment(d, attachment);
+            }
+        }
+
+        // Bracket logic
+        BracketedBlockEntityBehaviour bracket = BlockEntityBehaviour.get(level, pos, BracketedBlockEntityBehaviour.TYPE);
+        if (bracket != null && bracket.getBracket() != null) {
+            data.putBracket(bracket.getBracket());
+        }
+
+        data.setEncased(ColoredFluidPipeBlock.shouldDrawCasing(state));
+
+        return modelData.derive()
+                .with(PIPE_DATA, data)
+                .with(WORLD_PROPERTY, level)
+                .with(POS_PROPERTY, pos)
+                .build();
     }
 
     @Override
@@ -131,9 +179,8 @@ public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
         return originalModel.getOverrides();
     }
 
-    private static class ColoredPipeModelData {
+    public static class ColoredPipeModelData {
         private final FluidTransportBehaviour.AttachmentTypes[] attachments;
-        private DyeColor color;
         private boolean encased;
         private BakedModel bracket;
 
@@ -155,7 +202,9 @@ public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
         }
 
         public void putAttachment(Direction face, FluidTransportBehaviour.AttachmentTypes rim) {
-            attachments[face.get3DDataValue()] = rim;
+            if (rim != null) {
+                attachments[face.get3DDataValue()] = rim;
+            }
         }
 
         public FluidTransportBehaviour.AttachmentTypes getAttachment(Direction face) {
@@ -166,7 +215,7 @@ public class ColoredPipeAttachmentModel extends BakedModelWrapper<BakedModel> {
             return this.encased;
         }
 
-        public void setEncased(Boolean encased) {
+        public void setEncased(boolean encased) {
             this.encased = encased;
         }
     }

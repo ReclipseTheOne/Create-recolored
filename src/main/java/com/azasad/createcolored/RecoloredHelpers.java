@@ -13,6 +13,20 @@ public class RecoloredHelpers {
         Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST
     };
 
+    public static int getHorizontal(Direction direction) {
+        if (direction == Direction.UP || direction == Direction.DOWN) {
+            throw new IllegalArgumentException("Direction must be horizontal (NORTH, SOUTH, WEST, EAST)");
+        }
+
+        return switch (direction) {
+            case NORTH -> 0;
+            case SOUTH -> 1;
+            case WEST -> 2;
+            case EAST -> 3;
+            default -> -1; // Not called.
+        };
+    }
+
     public static int getColor(DyeColor color)
     {
         return switch (color) {

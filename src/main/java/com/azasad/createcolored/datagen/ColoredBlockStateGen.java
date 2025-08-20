@@ -5,21 +5,18 @@ import com.azasad.createcolored.content.block.ColoredFluidTankBlock;
 import com.google.common.collect.ImmutableList;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.fluids.pipes.EncasedPipeBlock;
-import com.simibubi.create.content.fluids.pipes.FluidPipeBlock;
 import com.simibubi.create.content.fluids.tank.FluidTankBlock;
-import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.Pointing;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
-import io.github.fabricators_of_create.porting_lib.models.generators.ConfiguredModel;
-import io.github.fabricators_of_create.porting_lib.models.generators.ModelFile;
-import io.github.fabricators_of_create.porting_lib.models.generators.block.MultiPartBlockStateBuilder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
+import net.minecraftforge.client.model.generators.ModelFile;
+import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashMap;
@@ -48,7 +45,7 @@ public class ColoredBlockStateGen {
                             shapeName = "bottom";
 
                         //Create model
-                        String modelName = "block_" + shapeName + (shape == FluidTankBlock.Shape.PLAIN ? "" : "_" + shape.asString());
+                        String modelName = "block_" + shapeName + (shape == FluidTankBlock.Shape.PLAIN ? "" : "_" + shape.getSerializedName());
                         ModelFile model = p.models().withExistingParent(coloredPath + modelName, Create.asResource(path + modelName))
                                 .texture("0", p.modLoc("block/fluid_tank_top/" + colorName))
                                 .texture("1", p.modLoc("block/fluid_tank/" + colorName))
@@ -85,11 +82,11 @@ public class ColoredBlockStateGen {
             List<String> orientations = ImmutableList.of(LU, RU, LD, RD, LR, UD, U, D, L, R);
 
             Map<Pair<String, Axis>, ModelFile> coreModels = new HashMap<>();
-            for (Axis axis : Iterate.axes) {
+            for (Axis axis : Axis.values()) {
                 for (String orientation : orientations) {
                     Pair<String, Axis> key = Pair.of(orientation, axis);
-                    String sourceModel = path + "/" + orientation + "_" + axis.asString(); //Single model for all pipes
-                    String coloredModel = coloredPath + "/" + orientation + "_" + axis.asString(); //each pipe has its own model
+                    String sourceModel = path + "/" + orientation + "_" + axis.getSerializedName(); //Single model for all pipes
+                    String coloredModel = coloredPath + "/" + orientation + "_" + axis.getSerializedName(); //each pipe has its own model
 
                     coreModels.put(key, p.models()
                             .withExistingParent(coloredModel, Create.asResource(sourceModel))
@@ -99,7 +96,7 @@ public class ColoredBlockStateGen {
             }
 
             MultiPartBlockStateBuilder builder = p.getMultipartBuilder(c.get());
-            for (Axis axis : Iterate.axes) {
+            for (Axis axis : Axis.values()) {
                 putPart(coreModels, builder, axis, LU, true, false, true, false);
                 putPart(coreModels, builder, axis, RU, true, false, false, true);
                 putPart(coreModels, builder, axis, LD, false, true, true, false);
@@ -190,13 +187,13 @@ public class ColoredBlockStateGen {
                     .texture("particle", "block/encased_pipe/" + colorName);
             ModelFile flat = p.models().getExistingFile(Create.asResource("block/encased_fluid_pipe/block_flat"));
             MultiPartBlockStateBuilder builder = p.getMultipartBuilder(c.get());
-            for (boolean flatPass : Iterate.trueAndFalse)
+            for (boolean flatPass : new boolean[]{false, true}) {
                 for (Direction d : Direction.values()) {
                     int verticalAngle = d == Direction.UP ? 90 : d == Direction.DOWN ? -90 : 0;
                     builder.part()
                             .modelFile(flatPass ? flat : open)
                             .rotationX(verticalAngle)
-                            .rotationY((int) (d.asRotation() + (d.getAxis()
+                            .rotationY( (int) (d.toYRot() + (d.getAxis()
                                     .isVertical() ? 90 : 0)) % 360)
                             .addModel()
                             .condition(EncasedPipeBlock.FACING_TO_PROPERTY_MAP.get(d), !flatPass)
